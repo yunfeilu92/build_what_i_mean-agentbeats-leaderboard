@@ -1,0 +1,86 @@
+{
+  "manifest_version": "0.1.0",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "green_agent_qa_mode": {
+        "type": "string"
+      },
+      "green_agent_transcript_dir": {
+        "type": "string"
+      },
+      "green_openai_api_key": {
+        "type": "string",
+        "secret": true
+      },
+      "rita_openai_api_key": {
+        "type": "string",
+        "secret": true
+      }
+    },
+    "required": [
+      "green_openai_api_key",
+      "green_agent_qa_mode",
+      "green_agent_transcript_dir",
+      "rita_openai_api_key"
+    ],
+    "additionalProperties": false
+  },
+  "components": {
+    "gateway": {
+      "manifest": "https://raw.githubusercontent.com/RDI-Foundation/agentbeats-gateway/refs/heads/main/amber-manifest.json5",
+      "config": {
+        "assessment_config": {
+          "list1_path": "/home/agent/data/List1_FINAL_stimuli_list.csv",
+          "list2_path": "/home/agent/data/List2_FINAL_stimuli_list.csv"
+        },
+        "participant_roles": {
+          "green": "green",
+          "purple1": "rita"
+        },
+        "callback_urls": {
+          "green": "${bindings.green-proxy.url}"
+        }
+      }
+    },
+    "green": {
+      "manifest": "https://raw.githubusercontent.com/RDI-Foundation/build_what_i_mean-agentbeats/refs/heads/main/amber/amber-manifest-green.json5",
+      "config": {
+        "agent_qa_mode": "${config.green_agent_qa_mode}",
+        "agent_transcript_dir": "${config.green_agent_transcript_dir}",
+        "openai_api_key": "${config.green_openai_api_key}"
+      }
+    },
+    "rita": {
+      "manifest": "https://raw.githubusercontent.com/RDI-Foundation/build_what_i_mean-agentbeats/refs/heads/main/amber/amber-manifest-purple.json5",
+      "config": {
+        "openai_api_key": "${config.rita_openai_api_key}"
+      }
+    }
+  },
+  "bindings": [
+    {
+      "to": "#gateway.green",
+      "from": "#green.a2a"
+    },
+    {
+      "to": "#gateway.purple1",
+      "from": "#rita.a2a"
+    },
+    {
+      "to": "#green.proxy",
+      "from": "#gateway.proxy",
+      "weak": true,
+      "name": "green-proxy"
+    }
+  ],
+  "exports": {
+    "results": "#gateway.results"
+  },
+  "metadata": {
+    "agentbeats_ids": {
+      "green": "019caf3f-5549-7731-a213-5e4ca0554cb7",
+      "rita": "019cbeea-dcea-7b72-86b6-ecb967329598"
+    }
+  }
+}
