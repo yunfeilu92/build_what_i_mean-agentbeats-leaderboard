@@ -1,0 +1,14 @@
+{
+  "status": "completed",
+  "results": [
+    {
+      "accuracy": 90.625,
+      "avg_questions_per_instruction": 0.6,
+      "overall_avg_score": 205.0
+    }
+  ],
+  "participants": {
+    "green": "019caf3f-5549-7731-a213-5e4ca0554cb7",
+    "rita": "019d1237-3965-7a23-ba68-4c15a11f5175"
+  }
+}
