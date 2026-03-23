@@ -38,30 +38,22 @@ def fetch_agent_info(agentbeats_id: str) -> dict:
         response.raise_for_status()
         info = response.json()
         # If docker_image is missing, try to resolve from amber manifest
-        if not info.get("docker_image") and info.get("amber_manifest_url"):
-            manifest_url = info["amber_manifest_url"].strip()
-            print(f"docker_image not set, fetching from amber manifest: {manifest_url}")
-            try:
-                import json5
-                manifest_resp = requests.get(manifest_url, timeout=30)
-                manifest_resp.raise_for_status()
-                manifest = json5.loads(manifest_resp.text)
-                image = manifest.get("program", {}).get("image")
-                if image:
-                    info["docker_image"] = image
-                    print(f"Resolved docker_image from manifest: {image}")
-            except ImportError:
-                # json5 not available, try regex extraction
-                import re
-                manifest_resp = requests.get(manifest_url, timeout=30)
-                manifest_resp.raise_for_status()
-                match = re.search(r'image\s*:\s*"([^"]+)"', manifest_resp.text)
-                if match:
-                    info["docker_image"] = match.group(1)
-                    print(f"Resolved docker_image from manifest: {match.group(1)}")
-            except Exception as e:
-                print(f"Warning: Failed to fetch amber manifest: {e}")
-            # Final fallback: construct image from repo link
+        if not info.get("docker_image"):
+            # Try amber manifest first
+            if info.get("amber_manifest_url"):
+                manifest_url = info["amber_manifest_url"].strip()
+                print(f"docker_image not set, trying amber manifest: {manifest_url}")
+                try:
+                    import re
+                    manifest_resp = requests.get(manifest_url, timeout=30)
+                    manifest_resp.raise_for_status()
+                    match = re.search(r'image\s*:\s*"([^"]+)"', manifest_resp.text)
+                    if match:
+                        info["docker_image"] = match.group(1)
+                        print(f"Resolved docker_image from manifest: {match.group(1)}")
+                except Exception as e:
+                    print(f"Warning: amber manifest failed: {e}")
+            # Fallback: construct from repo link
             if not info.get("docker_image") and info.get("repo_link"):
                 repo = info["repo_link"].rstrip("/").split("github.com/")[-1]
                 info["docker_image"] = f"ghcr.io/{repo}:latest"
