@@ -61,6 +61,11 @@ def fetch_agent_info(agentbeats_id: str) -> dict:
                     print(f"Resolved docker_image from manifest: {match.group(1)}")
             except Exception as e:
                 print(f"Warning: Failed to fetch amber manifest: {e}")
+            # Final fallback: construct image from repo link
+            if not info.get("docker_image") and info.get("repo_link"):
+                repo = info["repo_link"].rstrip("/").split("github.com/")[-1]
+                info["docker_image"] = f"ghcr.io/{repo}:latest"
+                print(f"Constructed docker_image from repo: {info['docker_image']}")
         return info
     except requests.exceptions.HTTPError as e:
         print(f"Error: Failed to fetch agent {agentbeats_id}: {e}")
