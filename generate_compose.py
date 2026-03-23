@@ -36,7 +36,32 @@ def fetch_agent_info(agentbeats_id: str) -> dict:
     try:
         response = requests.get(url, timeout=30)
         response.raise_for_status()
-        return response.json()
+        info = response.json()
+        # If docker_image is missing, try to resolve from amber manifest
+        if not info.get("docker_image") and info.get("amber_manifest_url"):
+            manifest_url = info["amber_manifest_url"].strip()
+            print(f"docker_image not set, fetching from amber manifest: {manifest_url}")
+            try:
+                import json5
+                manifest_resp = requests.get(manifest_url, timeout=30)
+                manifest_resp.raise_for_status()
+                manifest = json5.loads(manifest_resp.text)
+                image = manifest.get("program", {}).get("image")
+                if image:
+                    info["docker_image"] = image
+                    print(f"Resolved docker_image from manifest: {image}")
+            except ImportError:
+                # json5 not available, try regex extraction
+                import re
+                manifest_resp = requests.get(manifest_url, timeout=30)
+                manifest_resp.raise_for_status()
+                match = re.search(r'image\s*:\s*"([^"]+)"', manifest_resp.text)
+                if match:
+                    info["docker_image"] = match.group(1)
+                    print(f"Resolved docker_image from manifest: {match.group(1)}")
+            except Exception as e:
+                print(f"Warning: Failed to fetch amber manifest: {e}")
+        return info
     except requests.exceptions.HTTPError as e:
         print(f"Error: Failed to fetch agent {agentbeats_id}: {e}")
         sys.exit(1)
@@ -80,6 +105,7 @@ services:
     platform: linux/amd64
     container_name: agentbeats-client
     volumes:
+      - ./src:/app/src
       - ./a2a-scenario.toml:/app/scenario.toml
       - ./output:/app/output
     command: ["scenario.toml", "output/results.json"]

@@ -1,16 +1,10 @@
 [green_agent]
-agentbeats_id = ""
-env = { API_KEY = "${GITHUB_SECRET_NAME}", LOG_LEVEL = "INFO" }
+agentbeats_id = "019caf3f-5549-7731-a213-5e4ca0554cb7"
+env = { OPENAI_API_KEY = "${OPENAI_API_KEY}", OPENAI_BASE_URL = "${OPENAI_BASE_URL}", LOG_LEVEL = "INFO" }
 
 [[participants]]
-agentbeats_id = ""
-name = "role_1_name"
-env = {}
-
-[[participants]]
-agentbeats_id = ""
-name = "role_2_name"
-env = {}
+agentbeats_id = "019d18d3-d0e8-7712-acac-181ee5fbfce3"
+name = "rita"
+env = { AWS_ACCESS_KEY_ID = "${AWS_ACCESS_KEY_ID}", AWS_SECRET_ACCESS_KEY = "${AWS_SECRET_ACCESS_KEY}", AWS_REGION = "us-east-1", LLM_BACKEND = "bedrock", LLM_MODEL = "us.anthropic.claude-sonnet-4-6-20260516-v1:0" }
 
 [config]
-# Add your assessment config here
